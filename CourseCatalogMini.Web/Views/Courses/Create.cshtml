@@ -1,0 +1,65 @@
+﻿@model CourseCatalogMini.Data.Entities.Course
+
+@{
+    ViewData["Title"] = "Добавяне на курс";
+}
+
+<h1>Добавяне на курс</h1>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label asp-for="Name">Име на курса</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Teacher">Преподавател</label>
+        <input asp-for="Teacher" class="form-control" />
+        <span asp-validation-for="Teacher"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Category">Категория</label>
+
+        <select asp-for="Category" class="form-control">
+            <option value="">Изберете категория</option>
+            <option value="Програмиране">Програмиране</option>
+            <option value="Езици">Езици</option>
+            <option value="Дизайн">Дизайн</option>
+            <option value="Бизнес">Бизнес</option>
+            <option value="Други">Други</option>
+        </select>
+
+        <span asp-validation-for="Category"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DurationHours">Часове</label>
+        <input asp-for="DurationHours"
+               type="number"
+               class="form-control" />
+        <span asp-validation-for="DurationHours"
+              class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Description">Описание</label>
+        <textarea asp-for="Description"
+                  class="form-control"
+                  rows="4"></textarea>
+        <span asp-validation-for="Description"
+              class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Запази
+    </button>
+
+    <a asp-action="Index" class="btn btn-secondary">
+        Назад
+    </a>
+</form>
