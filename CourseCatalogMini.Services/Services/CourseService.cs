@@ -1,33 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.EntityFrameworkCore;
 using CourseCatalogMini.Data;
 using CourseCatalogMini.Data.Entities;
+using CourseCatalogMini.Services.DTOs.Courses;
 using CourseCatalogMini.Services.Interfaces;
 
+namespace CourseCatalogMini.Services.Services;
 
-namespace CourseCatalogMini.Services.Services
+public class CourseService : ICourseService
 {
-    public class CourseService : ICourseService
+    private readonly CourseCatalogDbContext _context;
+
+    public CourseService(CourseCatalogDbContext context)
     {
-        private readonly CourseCatalogDbContext _context;
+        _context = context;
+    }
 
-        public CourseService(CourseCatalogDbContext context)
+    public async Task<List<CourseListDto>> GetAll(
+        string? search,
+        string? category)
+    {
+        var query = _context.Courses.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            _context = context;
+            search = search.Trim();
+
+            query = query.Where(c =>
+                c.Name.Contains(search));
         }
 
-        public List<Course> GetAll()
+        if (!string.IsNullOrWhiteSpace(category))
         {
-            return _context.Courses.ToList();
+            query = query.Where(c =>
+                c.Category == category);
         }
 
-        public void AddCourse(Course course)
-        {
-            _context.Courses.Add(course);
-            _context.SaveChanges();
-        }
+        return await query
+            .OrderBy(c => c.Name)
+            .Select(c => new CourseListDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Teacher = c.Teacher,
+                Category = c.Category,
+                DurationHours = c.DurationHours,
+                Description = c.Description
+            })
+            .ToListAsync();
+    }
+
+    public void AddCourse(Course course)
+    {
+        _context.Courses.Add(course);
+        _context.SaveChanges();
     }
 }
