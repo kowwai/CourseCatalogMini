@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CourseCatalogMini.Data.Entities;
+﻿using CourseCatalogMini.Data.Entities;
+
+namespace CourseCatalogMini.Services.Interfaces;
 
 public interface ICourseService
 {
