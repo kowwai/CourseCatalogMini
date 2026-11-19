@@ -1,71 +1,88 @@
-﻿using CourseCatalogMini.Data;
-using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+﻿using Microsoft.AspNetCore.Mvc;
 using CourseCatalogMini.Data.Entities;
+using CourseCatalogMini.Services.Interfaces;
+using CourseCatalogMini.Web.ViewModels.Courses;
 
-namespace CourseCatalogMini.Web.Controllers
+namespace CourseCatalogMini.Web.Controllers;
+
+public class CoursesController : Controller
 {
-    public class CoursesController : Controller
+    private readonly ICourseService _courseService;
+
+    public CoursesController(ICourseService courseService)
     {
-        private readonly CourseCatalogDbContext db;
+        _courseService = courseService;
+    }
 
-        public CoursesController(CourseCatalogDbContext context)
+    public async Task<IActionResult> Index(
+        string? search, string? category)
+    {
+        var model = new CoursesIndexViewModel
         {
-            db = context;
+            Courses = await _courseService.GetAll(
+                search, category),
+
+            Search = search,
+            Category = category
+        };
+
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public IActionResult Create(Course course)
+    {
+        if (string.IsNullOrWhiteSpace(course.Name) ||
+            course.Name.Length > 150)
+        {
+            ModelState.AddModelError(
+                "Name", "Въведете име до 150 символа.");
         }
 
-        public IActionResult Index()
+        if (string.IsNullOrWhiteSpace(course.Teacher) ||
+            course.Teacher.Length > 100)
         {
-            var courses = db.Courses.ToList();
-
-            return View(courses);
+            ModelState.AddModelError(
+                "Teacher",
+                "Въведете преподавател до 100 символа.");
         }
 
-        public IActionResult Create()
+        if (string.IsNullOrWhiteSpace(course.Category) ||
+            course.Category.Length > 50)
         {
-            return View();
+            ModelState.AddModelError(
+                "Category", "Изберете валидна категория.");
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(Course course)
+        if (course.DurationHours <= 0)
         {
-            if (string.IsNullOrWhiteSpace(course.Name))
-            {
-                ModelState.AddModelError("Name", "Въведете име на курса.");
-            }
+            ModelState.AddModelError(
+                "DurationHours",
+                "Продължителността трябва да е положителна.");
+        }
 
-            if (string.IsNullOrWhiteSpace(course.Teacher))
-            {
-                ModelState.AddModelError("Teacher", "Въведете преподавател.");
-            }
+        if (string.IsNullOrWhiteSpace(course.Description) ||
+            course.Description.Length > 1000)
+        {
+            ModelState.AddModelError(
+                "Description",
+                "Въведете описание до 1000 символа.");
+        }
 
-            if (string.IsNullOrWhiteSpace(course.Category))
-            {
-                ModelState.AddModelError("Category", "Изберете категория.");
-            }
-
-            if (course.DurationHours <= 0)
-            {
-                ModelState.AddModelError(
-                    "DurationHours",
-                    "Продължителността трябва да е повече от 0 часа.");
-            }
-
-            if (string.IsNullOrWhiteSpace(course.Description))
-            {
-                ModelState.AddModelError("Description", "Въведете описание.");
-            }
-
-            if (ModelState.IsValid)
-            {
-                db.Courses.Add(course);
-                db.SaveChanges();
-
-                return RedirectToAction("Index");
-            }
-
+        if (!ModelState.IsValid)
+        {
             return View(course);
         }
+
+        _courseService.AddCourse(course);
+
+        return RedirectToAction("Index");
     }
 }
