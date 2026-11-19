@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CourseCatalogMini.Data\CourseCatalogMini.Data.csproj" />
+    <ProjectReference Include="..\CourseCatalogMini.Services\CourseCatalogMini.Services.csproj" />
   </ItemGroup>
 </Project>
 

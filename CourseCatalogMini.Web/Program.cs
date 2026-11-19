@@ -1,9 +1,15 @@
 using CourseCatalogMini.Data;
 using Microsoft.EntityFrameworkCore;
+using CourseCatalogMini.Services.Interfaces;
+using CourseCatalogMini.Services.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddScoped<ICourseService, CourseService>();
+
 
 builder.Services.AddDbContext<CourseCatalogDbContext>(options =>
     options.UseSqlServer(
