@@ -1,48 +1,78 @@
-﻿
-using CourseCatalogMini.Data.Entities;
+﻿using CourseCatalogMini.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace CourseCatalogMini.Data;
-
-public class CourseCatalogDbContext : DbContext
+namespace CourseCatalogMini.Data
 {
-    public CourseCatalogDbContext(
-        DbContextOptions<CourseCatalogDbContext> options)
-        : base(options)
+    public class CourseCatalogDbContext : DbContext
     {
-    }
-
-    public DbSet<Course> Courses { get; set; }
-
-    protected override void OnModelCreating(
-        ModelBuilder modelBuilder)
-    {
-        base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<Course>(entity =>
+        public CourseCatalogDbContext(
+            DbContextOptions<CourseCatalogDbContext> options)
+            : base(options)
         {
-            entity.HasKey(c => c.Id);
+        }
 
-            entity.Property(c => c.Name)
-                .IsRequired()
-                .HasMaxLength(150);
+        public DbSet<Course> Courses { get; set; }
 
-            entity.Property(c => c.Teacher)
-                .IsRequired()
-                .HasMaxLength(100);
+        public DbSet<Teacher> Teachers { get; set; }
 
-            entity.Property(c => c.Category)
-                .IsRequired()
-                .HasMaxLength(50);
+        public DbSet<Category> Categories { get; set; }
 
-            entity.Property(c => c.Description)
-                .IsRequired()
-                .HasMaxLength(1000);
+        protected override void OnModelCreating(
+            ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
 
-            entity.ToTable(t =>
-                t.HasCheckConstraint(
-                    "CK_Courses_DurationHours",
-                    "[DurationHours] > 0"));
-        });
+            modelBuilder.Entity<Teacher>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+
+                entity.Property(t => t.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasIndex(t => t.Name)
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<Category>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.Property(c => c.Name)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.HasIndex(c => c.Name)
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<Course>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.Property(c => c.Name)
+                    .IsRequired()
+                    .HasMaxLength(150);
+
+                entity.Property(c => c.Description)
+                    .IsRequired()
+                    .HasMaxLength(1000);
+
+                entity.HasOne(c => c.Teacher)
+                    .WithMany(t => t.Courses)
+                    .HasForeignKey(c => c.TeacherId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Category)
+                    .WithMany(c => c.Courses)
+                    .HasForeignKey(c => c.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.ToTable(t =>
+                    t.HasCheckConstraint(
+                        "CK_Courses_DurationHours",
+                        "[DurationHours] > 0"));
+            });
+        }
     }
 }
