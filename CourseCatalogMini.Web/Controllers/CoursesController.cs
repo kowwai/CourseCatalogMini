@@ -1,88 +1,92 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using CourseCatalogMini.Data.Entities;
+using CourseCatalogMini.Services.DTOs.Courses;
 using CourseCatalogMini.Services.Interfaces;
 using CourseCatalogMini.Web.ViewModels.Courses;
 
-namespace CourseCatalogMini.Web.Controllers;
-
-public class CoursesController : Controller
+namespace CourseCatalogMini.Web.Controllers
 {
-    private readonly ICourseService _courseService;
-
-    public CoursesController(ICourseService courseService)
+    public class CoursesController : Controller
     {
-        _courseService = courseService;
-    }
+        private readonly ICourseService _courseService;
 
-    public async Task<IActionResult> Index(
-        string? search, string? category)
-    {
-        var model = new CoursesIndexViewModel
+        public CoursesController(ICourseService courseService)
         {
-            Courses = await _courseService.GetAll(
-                search, category),
-
-            Search = search,
-            Category = category
-        };
-
-        return View(model);
-    }
-
-    [HttpGet]
-    public IActionResult Create()
-    {
-        return View();
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public IActionResult Create(Course course)
-    {
-        if (string.IsNullOrWhiteSpace(course.Name) ||
-            course.Name.Length > 150)
-        {
-            ModelState.AddModelError(
-                "Name", "Въведете име до 150 символа.");
+            _courseService = courseService;
         }
 
-        if (string.IsNullOrWhiteSpace(course.Teacher) ||
-            course.Teacher.Length > 100)
+        public async Task<IActionResult> Index(
+            string? search,
+            string? category)
         {
-            ModelState.AddModelError(
-                "Teacher",
-                "Въведете преподавател до 100 символа.");
+            var model = new CoursesIndexViewModel
+            {
+                Courses = await _courseService.GetAll(
+                    search, category),
+
+                Search = search,
+                Category = category
+            };
+
+            return View(model);
         }
 
-        if (string.IsNullOrWhiteSpace(course.Category) ||
-            course.Category.Length > 50)
+        [HttpGet]
+        public IActionResult Create()
         {
-            ModelState.AddModelError(
-                "Category", "Изберете валидна категория.");
+            return View(new CourseCreateDto());
         }
 
-        if (course.DurationHours <= 0)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Create(CourseCreateDto model)
         {
-            ModelState.AddModelError(
-                "DurationHours",
-                "Продължителността трябва да е положителна.");
+            if (string.IsNullOrWhiteSpace(model.Name) ||
+                model.Name.Length > 150)
+            {
+                ModelState.AddModelError(
+                    "Name",
+                    "Въведете име до 150 символа.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Teacher) ||
+                model.Teacher.Length > 100)
+            {
+                ModelState.AddModelError(
+                    "Teacher",
+                    "Въведете преподавател до 100 символа.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Category) ||
+                model.Category.Length > 50)
+            {
+                ModelState.AddModelError(
+                    "Category",
+                    "Изберете категория до 50 символа.");
+            }
+
+            if (model.DurationHours <= 0)
+            {
+                ModelState.AddModelError(
+                    "DurationHours",
+                    "Продължителността трябва да е положителна.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Description) ||
+                model.Description.Length > 1000)
+            {
+                ModelState.AddModelError(
+                    "Description",
+                    "Въведете описание до 1000 символа.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            _courseService.AddCourse(model);
+
+            return RedirectToAction("Index");
         }
-
-        if (string.IsNullOrWhiteSpace(course.Description) ||
-            course.Description.Length > 1000)
-        {
-            ModelState.AddModelError(
-                "Description",
-                "Въведете описание до 1000 символа.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return View(course);
-        }
-
-        _courseService.AddCourse(course);
-
-        return RedirectToAction("Index");
     }
 }
