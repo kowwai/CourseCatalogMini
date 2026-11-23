@@ -21,6 +21,27 @@ namespace CourseCatalogMini.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("CourseCatalogMini.Data.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("CourseCatalogMini.Data.Entities.Course", b =>
                 {
                     b.Property<int>("Id")
@@ -29,10 +50,8 @@ namespace CourseCatalogMini.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -47,17 +66,69 @@ namespace CourseCatalogMini.Data.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
-                    b.Property<string>("Teacher")
+                    b.Property<int>("TeacherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("Courses", t =>
+                        {
+                            t.HasCheckConstraint("CK_Courses_DurationHours", "[DurationHours] > 0");
+                        });
+                });
+
+            modelBuilder.Entity("CourseCatalogMini.Data.Entities.Teacher", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Courses", t =>
-                        {
-                            t.HasCheckConstraint("CK_Courses_DurationHours", "[DurationHours] > 0");
-                        });
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Teachers");
+                });
+
+            modelBuilder.Entity("CourseCatalogMini.Data.Entities.Course", b =>
+                {
+                    b.HasOne("CourseCatalogMini.Data.Entities.Category", "Category")
+                        .WithMany("Courses")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("CourseCatalogMini.Data.Entities.Teacher", "Teacher")
+                        .WithMany("Courses")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("CourseCatalogMini.Data.Entities.Category", b =>
+                {
+                    b.Navigation("Courses");
+                });
+
+            modelBuilder.Entity("CourseCatalogMini.Data.Entities.Teacher", b =>
+                {
+                    b.Navigation("Courses");
                 });
 #pragma warning restore 612, 618
         }
