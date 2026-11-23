@@ -6,9 +6,13 @@
 
         public string Name { get; set; } = "";
 
-        public string Teacher { get; set; } = "";
+        public int TeacherId { get; set; }
 
-        public string Category { get; set; } = "";
+        public Teacher Teacher { get; set; } = null!;
+
+        public int CategoryId { get; set; }
+
+        public Category Category { get; set; } = null!;
 
         public int DurationHours { get; set; }
 
