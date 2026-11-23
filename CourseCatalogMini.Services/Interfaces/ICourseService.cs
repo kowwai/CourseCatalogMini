@@ -9,5 +9,5 @@ public interface ICourseService
         string? search,
         string? category);
 
-    void AddCourse(Course course);
+    void AddCourse(CourseCreateDto model);
 }
